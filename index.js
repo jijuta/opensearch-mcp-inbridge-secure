@@ -25,11 +25,15 @@ if (!MCP_SERVER_URL) {
   process.exit(1);
 }
 
+// 세션 관리
+let sessionId = null;
+
 // 헬스체크
 async function healthCheck() {
   try {
     await axios.get(`${MCP_SERVER_URL}/health`, { timeout: 5000 });
     console.error(`✅ MCP Server connected: ${MCP_SERVER_URL}`);
+    console.error(`🔧 opensearch-mcp-inbridge v1.1.0 - Streamable HTTP mode`);
   } catch (error) {
     console.error(`❌ Cannot connect to MCP server: ${MCP_SERVER_URL}`);
     console.error(`Error: ${error.message}`);
@@ -56,10 +60,29 @@ rl.on('line', async (line) => {
   try {
     request = JSON.parse(line);
 
-    const response = await axios.post(MCP_SERVER_URL, request, {
-      headers: { 'Content-Type': 'application/json' },
+    // Streamable HTTP 프로토콜에 맞게 /mcp 엔드포인트 사용
+    const endpoint = `${MCP_SERVER_URL}/mcp`;
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
+    // 세션 ID가 있으면 헤더에 추가
+    if (sessionId) {
+      headers['Mcp-Session-Id'] = sessionId;
+    }
+
+    console.error(`📤 Request to: ${endpoint} | Method: ${request.method} | Session: ${sessionId || 'none'}`);
+
+    const response = await axios.post(endpoint, request, {
+      headers,
       timeout: 30000
     });
+
+    // 응답에서 세션 ID 추출 (initialize 응답에서)
+    if (response.headers['mcp-session-id'] && !sessionId) {
+      sessionId = response.headers['mcp-session-id'];
+      console.error(`✅ Session established: ${sessionId}`);
+    }
 
     console.log(JSON.stringify(response.data));
   } catch (error) {
@@ -82,4 +105,35 @@ rl.on('line', async (line) => {
     };
     console.log(JSON.stringify(errorResponse));
   }
+});
+
+// 프로세스 종료 시 세션 정리
+process.on('SIGINT', async () => {
+  if (sessionId) {
+    try {
+      await axios.delete(`${MCP_SERVER_URL}/mcp`, {
+        headers: { 'Mcp-Session-Id': sessionId },
+        timeout: 5000
+      });
+      console.error('✅ Session terminated');
+    } catch (error) {
+      console.error('⚠️ Failed to terminate session');
+    }
+  }
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  if (sessionId) {
+    try {
+      await axios.delete(`${MCP_SERVER_URL}/mcp`, {
+        headers: { 'Mcp-Session-Id': sessionId },
+        timeout: 5000
+      });
+      console.error('✅ Session terminated');
+    } catch (error) {
+      console.error('⚠️ Failed to terminate session');
+    }
+  }
+  process.exit(0);
 });
