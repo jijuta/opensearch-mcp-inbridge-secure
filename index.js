@@ -60,10 +60,12 @@ rl.on('line', async (line) => {
   try {
     request = JSON.parse(line);
 
-    // Streamable HTTP 프로토콜에 맞게 /mcp 엔드포인트 사용
-    const endpoint = `${MCP_SERVER_URL}/mcp`;
+    // Streamable HTTP 프로토콜에 맞게 /mcp/ 엔드포인트 사용 (trailing slash 필요)
+    const endpoint = `${MCP_SERVER_URL}/mcp/`;
     const headers = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'User-Agent': 'opensearch-mcp-inbridge/1.1.0'
     };
 
     // 세션 ID가 있으면 헤더에 추가
@@ -111,7 +113,7 @@ rl.on('line', async (line) => {
 process.on('SIGINT', async () => {
   if (sessionId) {
     try {
-      await axios.delete(`${MCP_SERVER_URL}/mcp`, {
+      await axios.delete(`${MCP_SERVER_URL}/mcp/`, {
         headers: { 'Mcp-Session-Id': sessionId },
         timeout: 5000
       });
@@ -126,7 +128,7 @@ process.on('SIGINT', async () => {
 process.on('SIGTERM', async () => {
   if (sessionId) {
     try {
-      await axios.delete(`${MCP_SERVER_URL}/mcp`, {
+      await axios.delete(`${MCP_SERVER_URL}/mcp/`, {
         headers: { 'Mcp-Session-Id': sessionId },
         timeout: 5000
       });
