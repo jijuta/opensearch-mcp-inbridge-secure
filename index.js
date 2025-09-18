@@ -52,8 +52,9 @@ const rl = readline.createInterface({
 });
 
 rl.on('line', async (line) => {
+  let request = null;
   try {
-    const request = JSON.parse(line);
+    request = JSON.parse(line);
 
     const response = await axios.post(MCP_SERVER_URL, request, {
       headers: { 'Content-Type': 'application/json' },
