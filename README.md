@@ -54,14 +54,37 @@ npm install -g git+https://github.com/jijuta/opensearch-mcp-inbridge-secure.git
     "opensearch": {
       "command": "opensearch-mcp-inbridge",
       "env": {
-        "MCP_SERVER_URL": "http://your-server:your-port"
+        "MCP_SERVER_URL": "http://20.41.120.173:8099"
       }
     }
   }
 }
 ```
 
-**⚠️ Important: Contact your system administrator for the correct MCP_SERVER_URL value**
+**⚠️ Important: Use the exact MCP_SERVER_URL provided by your system administrator**
+
+#### Complete Configuration with Both Tools
+
+If you want to use both OpenSearch search and incident analysis tools:
+
+```json
+{
+  "mcpServers": {
+    "opensearch": {
+      "command": "opensearch-mcp-inbridge",
+      "env": {
+        "MCP_SERVER_URL": "http://20.41.120.173:8099"
+      }
+    },
+    "incident-analysis": {
+      "command": "incident-analysis-mcp",
+      "env": {
+        "MCP_SERVER_URL": "http://20.41.120.173:8099"
+      }
+    }
+  }
+}
+```
 
 ### Step 3: Restart Claude Desktop
 
@@ -90,6 +113,32 @@ Once connected, you'll have access to:
 - **CountTool**: Count documents in indices
 - **MsearchTool**: Multi-search operations
 - **ExplainTool**: Explain query execution
+
+## 💬 How to Use in Claude Desktop
+
+### Basic Queries
+```
+"Show me all available OpenSearch indices"
+"Search for logs containing 'error' in the last 24 hours"
+"Check the health status of the OpenSearch cluster"
+"Count documents in the security-logs index"
+```
+
+### Advanced Queries
+```
+"Find all documents with severity 'critical' in threat-intelligence indices"
+"Show me the mapping structure for the malware index"
+"Search for IP addresses starting with 192.168 in the last week"
+"Get shard information for indices starting with 'log-'"
+```
+
+### Data Analysis
+```
+"Analyze the distribution of threat types in the threat-intelligence-* indices"
+"Show me recent malware detections from the past 3 days"
+"Find all IOCs (Indicators of Compromise) related to suspicious domains"
+"Search for file artifacts with high risk scores"
+```
 
 ## 🔍 Troubleshooting
 
