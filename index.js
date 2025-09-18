@@ -33,7 +33,7 @@ async function healthCheck() {
   try {
     await axios.get(`${MCP_SERVER_URL}/health`, { timeout: 5000 });
     console.error(`✅ MCP Server connected: ${MCP_SERVER_URL}`);
-    console.error(`🔧 opensearch-mcp-inbridge v1.2.0 - Streamable HTTP mode with dual Accept headers`);
+    console.error(`🔧 opensearch-mcp-inbridge v1.3.0 - Streamable HTTP mode with SSE parsing`);
   } catch (error) {
     console.error(`❌ Cannot connect to MCP server: ${MCP_SERVER_URL}`);
     console.error(`Error: ${error.message}`);
@@ -65,7 +65,7 @@ rl.on('line', async (line) => {
     const headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json, text/event-stream',
-      'User-Agent': 'opensearch-mcp-inbridge/1.2.0'
+      'User-Agent': 'opensearch-mcp-inbridge/1.3.0'
     };
 
     // 세션 ID가 있으면 헤더에 추가
@@ -73,7 +73,7 @@ rl.on('line', async (line) => {
       headers['Mcp-Session-Id'] = sessionId;
     }
 
-    console.error(`📤 Request to: ${endpoint} | Method: ${request.method} | Session: ${sessionId || 'none'} | v1.2.0`);
+    console.error(`📤 Request to: ${endpoint} | Method: ${request.method} | Session: ${sessionId || 'none'} | v1.3.0`);
 
     const response = await axios.post(endpoint, request, {
       headers,
@@ -88,14 +88,40 @@ rl.on('line', async (line) => {
 
     console.error(`📥 Response type: ${typeof response.data} | Content: ${JSON.stringify(response.data).substring(0, 200)}...`);
 
-    // 응답이 문자열인 경우 JSON 파싱 시도
+    // SSE (Server-Sent Events) 형식 파싱
     let responseData = response.data;
     if (typeof response.data === 'string') {
-      try {
-        responseData = JSON.parse(response.data);
-        console.error(`🔄 String response parsed to JSON successfully`);
-      } catch (parseError) {
-        console.error(`❌ Failed to parse string response as JSON: ${parseError.message}`);
+      // SSE 형식인지 확인 (event: message\r\ndata: {...} 형태)
+      if (response.data.includes('event:') && response.data.includes('data:')) {
+        try {
+          // SSE 형식에서 JSON 데이터 추출
+          const lines = response.data.split('\n');
+          for (const line of lines) {
+            if (line.trim().startsWith('data:')) {
+              const jsonStr = line.substring(line.indexOf('data:') + 5).trim();
+              responseData = JSON.parse(jsonStr);
+              console.error(`🔄 SSE format parsed successfully`);
+              break;
+            }
+          }
+        } catch (parseError) {
+          console.error(`❌ Failed to parse SSE format: ${parseError.message}`);
+          // SSE 파싱 실패 시 일반 JSON 파싱 시도
+          try {
+            responseData = JSON.parse(response.data);
+            console.error(`🔄 Fallback: String response parsed to JSON successfully`);
+          } catch (fallbackError) {
+            console.error(`❌ Failed to parse as JSON: ${fallbackError.message}`);
+          }
+        }
+      } else {
+        // 일반 JSON 문자열 파싱 시도
+        try {
+          responseData = JSON.parse(response.data);
+          console.error(`🔄 String response parsed to JSON successfully`);
+        } catch (parseError) {
+          console.error(`❌ Failed to parse string response as JSON: ${parseError.message}`);
+        }
       }
     }
 
