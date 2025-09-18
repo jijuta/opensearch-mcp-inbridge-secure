@@ -86,7 +86,20 @@ rl.on('line', async (line) => {
       console.error(`✅ Session established: ${sessionId}`);
     }
 
-    console.log(JSON.stringify(response.data));
+    console.error(`📥 Response type: ${typeof response.data} | Content: ${JSON.stringify(response.data).substring(0, 200)}...`);
+
+    // 응답이 문자열인 경우 JSON 파싱 시도
+    let responseData = response.data;
+    if (typeof response.data === 'string') {
+      try {
+        responseData = JSON.parse(response.data);
+        console.error(`🔄 String response parsed to JSON successfully`);
+      } catch (parseError) {
+        console.error(`❌ Failed to parse string response as JSON: ${parseError.message}`);
+      }
+    }
+
+    console.log(JSON.stringify(responseData));
   } catch (error) {
     let requestId = null;
     try {
