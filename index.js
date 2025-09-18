@@ -33,7 +33,7 @@ async function healthCheck() {
   try {
     await axios.get(`${MCP_SERVER_URL}/health`, { timeout: 5000 });
     console.error(`✅ MCP Server connected: ${MCP_SERVER_URL}`);
-    console.error(`🔧 opensearch-mcp-inbridge v1.1.0 - Streamable HTTP mode`);
+    console.error(`🔧 opensearch-mcp-inbridge v1.2.0 - Streamable HTTP mode with dual Accept headers`);
   } catch (error) {
     console.error(`❌ Cannot connect to MCP server: ${MCP_SERVER_URL}`);
     console.error(`Error: ${error.message}`);
@@ -65,7 +65,7 @@ rl.on('line', async (line) => {
     const headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json, text/event-stream',
-      'User-Agent': 'opensearch-mcp-inbridge/1.1.0'
+      'User-Agent': 'opensearch-mcp-inbridge/1.2.0'
     };
 
     // 세션 ID가 있으면 헤더에 추가
@@ -73,7 +73,7 @@ rl.on('line', async (line) => {
       headers['Mcp-Session-Id'] = sessionId;
     }
 
-    console.error(`📤 Request to: ${endpoint} | Method: ${request.method} | Session: ${sessionId || 'none'}`);
+    console.error(`📤 Request to: ${endpoint} | Method: ${request.method} | Session: ${sessionId || 'none'} | v1.2.0`);
 
     const response = await axios.post(endpoint, request, {
       headers,
