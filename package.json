@@ -1,0 +1,28 @@
+{
+  "name": "opensearch-mcp-inbridge",
+  "version": "1.0.0",
+  "description": "Simple HTTP client to connect Claude Desktop to OpenSearch MCP servers",
+  "main": "index.js",
+  "bin": {
+    "opensearch-mcp-inbridge": "index.js"
+  },
+  "scripts": {
+    "test": "echo 'Contact system administrator for server details'"
+  },
+  "keywords": [
+    "opensearch",
+    "mcp",
+    "claude",
+    "inbridge",
+    "proxy",
+    "http"
+  ],
+  "author": "InBridge Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.0"
+  }
+}
