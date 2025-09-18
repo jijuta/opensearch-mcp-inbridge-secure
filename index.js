@@ -33,7 +33,7 @@ async function healthCheck() {
   try {
     await axios.get(`${MCP_SERVER_URL}/health`, { timeout: 5000 });
     console.error(`✅ MCP Server connected: ${MCP_SERVER_URL}`);
-    console.error(`🔧 opensearch-mcp-inbridge v1.3.1 - 406 에러 수정, Accept 헤더 단순화`);
+    console.error(`🔧 opensearch-mcp-inbridge v1.3.2 - Accept 헤더 복원, 정확한 406 에러 수정`);
   } catch (error) {
     console.error(`❌ Cannot connect to MCP server: ${MCP_SERVER_URL}`);
     console.error(`Error: ${error.message}`);
@@ -64,8 +64,8 @@ rl.on('line', async (line) => {
     const endpoint = `${MCP_SERVER_URL}/mcp/`;
     const headers = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'User-Agent': 'opensearch-mcp-inbridge/1.3.1',
+      'Accept': 'application/json, text/event-stream',
+      'User-Agent': 'opensearch-mcp-inbridge/1.3.2',
       'Connection': 'keep-alive'
     };
 
@@ -74,7 +74,7 @@ rl.on('line', async (line) => {
       headers['Mcp-Session-Id'] = sessionId;
     }
 
-    console.error(`📤 Request to: ${endpoint} | Method: ${request.method} | Session: ${sessionId || 'none'} | v1.3.1`);
+    console.error(`📤 Request to: ${endpoint} | Method: ${request.method} | Session: ${sessionId || 'none'} | v1.3.2`);
 
     const response = await axios.post(endpoint, request, {
       headers,
