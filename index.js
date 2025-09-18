@@ -33,7 +33,7 @@ async function healthCheck() {
   try {
     await axios.get(`${MCP_SERVER_URL}/health`, { timeout: 5000 });
     console.error(`✅ MCP Server connected: ${MCP_SERVER_URL}`);
-    console.error(`🔧 opensearch-mcp-inbridge v1.3.3 - 202 응답 처리 개선, Zod 에러 수정`);
+    console.error(`🔧 opensearch-mcp-inbridge v1.3.4 - 202 응답 무시로 JSON-RPC Zod 에러 완전 수정`);
   } catch (error) {
     console.error(`❌ Cannot connect to MCP server: ${MCP_SERVER_URL}`);
     console.error(`Error: ${error.message}`);
@@ -65,7 +65,7 @@ rl.on('line', async (line) => {
     const headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json, text/event-stream',
-      'User-Agent': 'opensearch-mcp-inbridge/1.3.3',
+      'User-Agent': 'opensearch-mcp-inbridge/1.3.4',
       'Connection': 'keep-alive'
     };
 
@@ -74,7 +74,7 @@ rl.on('line', async (line) => {
       headers['Mcp-Session-Id'] = sessionId;
     }
 
-    console.error(`📤 Request to: ${endpoint} | Method: ${request.method} | Session: ${sessionId || 'none'} | v1.3.3`);
+    console.error(`📤 Request to: ${endpoint} | Method: ${request.method} | Session: ${sessionId || 'none'} | v1.3.4`);
 
     const response = await axios.post(endpoint, request, {
       headers,
@@ -93,11 +93,10 @@ rl.on('line', async (line) => {
 
     console.error(`📥 Response status: ${response.status} | Type: ${typeof response.data} | Content: ${JSON.stringify(response.data).substring(0, 200)}...`);
 
-    // 202 Accepted (빈 응답) 처리
+    // 202 Accepted (빈 응답) 처리 - 아무것도 전송하지 않음
     if (response.status === 202) {
-      console.error(`⚠️ 202 Accepted - sending empty JSON response`);
-      console.log('{}'); // 빈 JSON 객체 전송
-      return;
+      console.error(`⚠️ 202 Accepted - skipping response (no output to Claude Desktop)`);
+      return; // 아무것도 전송하지 않음
     }
 
     // SSE (Server-Sent Events) 형식 파싱
