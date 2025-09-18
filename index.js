@@ -33,7 +33,7 @@ async function healthCheck() {
   try {
     await axios.get(`${MCP_SERVER_URL}/health`, { timeout: 5000 });
     console.error(`✅ MCP Server connected: ${MCP_SERVER_URL}`);
-    console.error(`🔧 opensearch-mcp-inbridge v1.3.0 - Streamable HTTP mode with SSE parsing`);
+    console.error(`🔧 opensearch-mcp-inbridge v1.3.1 - 406 에러 수정, Accept 헤더 단순화`);
   } catch (error) {
     console.error(`❌ Cannot connect to MCP server: ${MCP_SERVER_URL}`);
     console.error(`Error: ${error.message}`);
@@ -64,8 +64,9 @@ rl.on('line', async (line) => {
     const endpoint = `${MCP_SERVER_URL}/mcp/`;
     const headers = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json, text/event-stream',
-      'User-Agent': 'opensearch-mcp-inbridge/1.3.0'
+      'Accept': 'application/json',
+      'User-Agent': 'opensearch-mcp-inbridge/1.3.1',
+      'Connection': 'keep-alive'
     };
 
     // 세션 ID가 있으면 헤더에 추가
@@ -73,11 +74,15 @@ rl.on('line', async (line) => {
       headers['Mcp-Session-Id'] = sessionId;
     }
 
-    console.error(`📤 Request to: ${endpoint} | Method: ${request.method} | Session: ${sessionId || 'none'} | v1.3.0`);
+    console.error(`📤 Request to: ${endpoint} | Method: ${request.method} | Session: ${sessionId || 'none'} | v1.3.1`);
 
     const response = await axios.post(endpoint, request, {
       headers,
-      timeout: 30000
+      timeout: 60000,
+      maxRetries: 0,
+      validateStatus: function (status) {
+        return status >= 200 && status < 500; // 4xx 에러도 허용해서 디버깅
+      }
     });
 
     // 응답에서 세션 ID 추출 (initialize 응답에서)
@@ -86,7 +91,7 @@ rl.on('line', async (line) => {
       console.error(`✅ Session established: ${sessionId}`);
     }
 
-    console.error(`📥 Response type: ${typeof response.data} | Content: ${JSON.stringify(response.data).substring(0, 200)}...`);
+    console.error(`📥 Response status: ${response.status} | Type: ${typeof response.data} | Content: ${JSON.stringify(response.data).substring(0, 200)}...`);
 
     // SSE (Server-Sent Events) 형식 파싱
     let responseData = response.data;
