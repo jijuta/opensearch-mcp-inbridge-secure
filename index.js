@@ -63,13 +63,22 @@ rl.on('line', async (line) => {
 
     console.log(JSON.stringify(response.data));
   } catch (error) {
+    let requestId = null;
+    try {
+      if (request && typeof request.id !== 'undefined') {
+        requestId = request.id;
+      }
+    } catch {
+      requestId = null;
+    }
+
     const errorResponse = {
       jsonrpc: "2.0",
       error: {
         code: -32603,
         message: error.message
       },
-      id: (request && request.id) || null
+      id: requestId
     };
     console.log(JSON.stringify(errorResponse));
   }
