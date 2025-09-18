@@ -64,7 +64,7 @@ rl.on('line', async (line) => {
     const endpoint = `${MCP_SERVER_URL}/mcp/`;
     const headers = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      'Accept': 'application/json, text/event-stream',
       'User-Agent': 'opensearch-mcp-inbridge/1.1.0'
     };
 
